@@ -11,27 +11,14 @@ $dbh = new PDO($dsn, $username, $password );
 // 	print_r($row);
 
 
-$record_code = "IMA-WI212311";
-$record_title = "A baptism fourth record";
+function insert_page_content($record_code, $record_title, $tag_text, $username, &$dbh)
+{
+	$record_id = insert_return_id("records", array( "code" => $record_code, "title" => $record_title), $dbh );
+	$tag_id = insert_return_id("tags", array( "text" => $tag_text), $dbh);
+	$user_id = insert_return_id("users", array( "username" => $username), $dbh);
 
-$record_id = insert_return_id("records", array( "code" => $record_code, "title" => $record_title), $dbh );
-
-$tag_text = "woot";
-
-$tag_id = insert_return_id("tags", array( "text" => $tag_text), $dbh);
-
-$username = "rocket";
-
-$user_id = insert_return_id("users", array( "username" => $username), $dbh);
-
-print "inserting R{$record_id} U{$user_id} T{$tag_id}\n";
-
-if (insert_no_id("record_user_tags", array( "user_id" => $user_id, "record_id" => $record_id, "tag_id" => $tag_id), $dbh))
-	echo "success";
-else
-	echo "failure";
-
-print "\n";
+	return insert_no_id("record_user_tags", array( "user_id" => $user_id, "record_id" => $record_id, "tag_id" => $tag_id), $dbh);
+}
 
 function insert_return_id($table, $values, &$dbh)
 {
