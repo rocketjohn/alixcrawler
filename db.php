@@ -1,19 +1,18 @@
 <?php
 
-$dsn = 'mysql:host=localhost;dbname=crawler';
-$username = 'crawler';
-$password = 'alix';
-
-
-$dbh = new PDO($dsn, $username, $password );
 
 // foreach($dbh->query("select * from record_user_tags") as $row)
-// 	print_r($row);
+// 	// print_r($row);
 
 
-function insert_page_content($record_code, $record_title, $tag_text, $username, &$dbh)
+function insert_page_content($record_pagetitle, $record_recordtitle, $record_oid, $record_iid, $tag_text, $username, &$dbh)
 {
-	$record_id = insert_return_id("records", array( "code" => $record_code, "title" => $record_title), $dbh );
+	$record_id = insert_return_id("records", array( 
+			"pagetitle" => $record_pagetitle, 
+			"recordtitle" => $record_recordtitle,
+			"oid" => $record_oid,
+			"iid" => $record_iid 
+		), $dbh );
 	$tag_id = insert_return_id("tags", array( "text" => $tag_text), $dbh);
 	$user_id = insert_return_id("users", array( "username" => $username), $dbh);
 
@@ -33,7 +32,8 @@ function insert_return_id($table, $values, &$dbh)
 
 	$check_sql = "select id from {$table} where {$check_params}";
 
-	print $check_sql . "\n";
+	//  print $check_sql . "\n";
+	
 	$check = $dbh->prepare($check_sql);
 
 	foreach ($values as $column => $value) {
@@ -42,13 +42,15 @@ function insert_return_id($table, $values, &$dbh)
 
 	$check->execute();
 	
-	print "Rowcount: " . $check->rowcount() . "\n";
+	//  print "Rowcount: " . $check->rowcount() . "\n";
 		
 	if ($check->rowcount() > 0) {
 		$row = $check->fetch(PDO::FETCH_ASSOC);
+		unset($check);
 		return $row['id'];
 	}
 	else {
+		unset($check);
 
 		$insert_columns_ary = array_keys($values);
 
@@ -64,7 +66,7 @@ function insert_return_id($table, $values, &$dbh)
 
 		$insert_sql = "insert into {$table} ({$insert_columns}) values ({$insert_values})";
 
-		print $insert_sql . "\n";
+		//  print $insert_sql . "\n";
 
 		$insert = $dbh->prepare($insert_sql);
 
@@ -74,7 +76,12 @@ function insert_return_id($table, $values, &$dbh)
 		}
 
 		if ($insert->execute())
+		{	
+			unset($insert);
 			return ($dbh->lastinsertid());
+		}
+
+		unset($insert);
 	}
 
 }
@@ -92,7 +99,7 @@ function insert_no_id($table, $values, $dbh)
 
 	$check_sql = "select * from {$table} where {$check_params}";
 
-	print $check_sql . "\n";
+	// print $check_sql . "\n";
 	$check = $dbh->prepare($check_sql);
 
 	foreach ($values as $column => $value) {
@@ -101,13 +108,14 @@ function insert_no_id($table, $values, $dbh)
 
 	$check->execute();
 	
-	print "Rowcount: " . $check->rowcount() . "\n";
+	// print "Rowcount: " . $check->rowcount() . "\n";
 		
 	if ($check->rowcount() > 0) {
+		unset($check);
 		return false; // no new record created
 	}
 	else {
-
+		unset($check);
 		$insert_columns_ary = array_keys($values);
 
 		$insert_columns = implode(",", $insert_columns_ary );
@@ -122,7 +130,7 @@ function insert_no_id($table, $values, $dbh)
 
 		$insert_sql = "insert into {$table} ({$insert_columns}) values ({$insert_values})";
 
-		print $insert_sql . "\n";
+		// print $insert_sql . "\n";
 
 		$insert = $dbh->prepare($insert_sql);
 
@@ -130,8 +138,9 @@ function insert_no_id($table, $values, $dbh)
 
 			$insert->bindParam(":{$column}", $values[$column]);
 		}
-
-		return ($insert->execute());
+		$success = $insert->execute();
+		unset($insert);
+		return ($success);
 	}
 }
 
