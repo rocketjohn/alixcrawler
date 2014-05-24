@@ -1,7 +1,6 @@
 <?php
 
 // It may take a whils to crawl a site ...
-set_time_limit(10000);
 
 // Inculde the phpcrawl-mainclass
 include("libs/PHPCrawler.class.php");
@@ -12,9 +11,12 @@ include("db.php");
 class MyCrawler extends PHPCrawler 
 {
 
+    private $count = 0;
+
   function handleDocumentInfo($DocInfo) 
   {
-
+set_time_limit(10000);
+    $this->count++;
 
     $dsn = 'mysql:host=localhost;dbname=crawler';
     $username = 'crawler';
@@ -26,10 +28,10 @@ class MyCrawler extends PHPCrawler
     else $lb = "<br />";
 
     // Print the URL and the HTTP-status-Code
-    echo "Page requested: ".$DocInfo->url." (".$DocInfo->http_status_code.")".$lb;
+    echo "Page number {$this->count} requested: ".$DocInfo->url." (".$DocInfo->http_status_code.")".$lb;
     
     // Print the refering URL
-    // echo "Referer-page: ".$DocInfo->referer_url.$lb;
+    echo "Referer-page: ".$DocInfo->referer_url.$lb;
     
     // Print if the content of the document was be recieved or not
  //    if ($DocInfo->received == true)
@@ -53,7 +55,7 @@ class MyCrawler extends PHPCrawler
         
         if (!empty($tags))
         {
-            // echo "Found a tag page!".$lb;
+            echo "Found a tag page!".$lb;
         
             $page_title = $html->find('div#content_sleeve h1', 0);
             // print "Page Title: " . trim($page_title->plaintext) . $lb;
@@ -145,8 +147,8 @@ $crawler->setStreamTimeout(60);
 $crawler->setUrlCacheType(2); //SQLLite cache
 $crawler->setWorkingDirectory("/dev/shm/"); // set working directory somewhere big
 // URL to crawl
-$crawler->addPostData("#^http://www.lincstothepast.com/SearchResults.aspx$#", array("rectype" => "img", "withallworld" => "", "withexactphrase" => "", "withatleastone" => "", "withoutword" => "", "page") );
-$crawler->setURL("http://www.lincstothepast.com/SearchResults.aspx?&cmd=PageSize&val=100"); // real start point 
+$crawler->addPostData("#^http://www.lincstothepast.com/SearchResults.aspx$#", array("rectype" => "img", "withallworld" => "", "withexactphrase" => "", "withatleastone" => "", "withoutword" => "") );
+$crawler->setURL("http://www.lincstothepast.com/SearchResults.aspx"); // real start point 
 // $crawler->setURL("http://www.lincstothepast.com/Records/RecordDisplayTranscript.aspx?oid=514689&iid=75920"); // multipage tags test
 // $crawler->setURL("http://www.lincstothepast.com/Records/RecordDisplayTranscript.aspx?oid=778626&iid=572807"); // no tags test
 
